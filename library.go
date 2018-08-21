@@ -9,7 +9,7 @@ import (
 
 // Library holds all loaded fortunes.
 type Library struct {
-	fortunes []string
+	Fortunes []string
 }
 
 // Append fortunes from a given file to the library.
@@ -35,24 +35,24 @@ func (l *Library) Append(path string, offensive bool) error {
 		fortunes = fortunes[:len(fortunes)-1]
 	}
 
-	l.fortunes = append(l.fortunes, fortunes...)
+	l.Fortunes = append(l.Fortunes, fortunes...)
 	return nil
 }
 
 // Get a random fortune.
 func (l *Library) Get() string {
-	nFortunes := len(l.fortunes)
+	nFortunes := len(l.Fortunes)
 	if nFortunes == 0 {
 		return ""
 	}
 
-	index := rand.Intn(len(l.fortunes))
-	return l.fortunes[index]
+	index := rand.Intn(len(l.Fortunes))
+	return l.Fortunes[index]
 }
 
 // List all fortunes from the library.
 func (l *Library) List() []string {
-	return l.fortunes
+	return l.Fortunes
 }
 
 func decode(data []byte) []byte {
