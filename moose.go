@@ -1,12 +1,14 @@
 package moose
 
 import (
+	"errors"
 	"image"
 	"image/color"
 	"image/draw"
 	"image/png"
 	"os"
 	"strings"
+	"unicode/utf8"
 
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/inconsolata"
@@ -22,27 +24,32 @@ func WritePNG(path, text string, fg, bg color.Color) error {
 	defer file.Close()
 
 	face := inconsolata.Bold8x16
-	dst := Render(text, face, fg, bg)
+	dst, err := Render(text, face, fg, bg)
+	if err != nil {
+		return err
+	}
 	return png.Encode(file, dst)
 }
 
 // Render renders a text on an image.
-func Render(text string, face font.Face, fg, bg color.Color) image.Image {
+func Render(text string, face font.Face, fg, bg color.Color) (image.Image, error) {
 	lines := strings.Split(text, "\n")
 	ascent := face.Metrics().Ascent.Ceil()
 	rect := measure(lines, face, ascent)
-	dst := image.NewRGBA(rect)
-	if !rect.Empty() {
-		// Fill background.
-		draw.Draw(dst, rect, image.NewUniform(bg), image.ZP, draw.Src)
-		// Draw text.
-		drawer := font.Drawer{Dst: dst, Src: image.NewUniform(fg), Face: face}
-		for i, line := range lines {
-			drawer.Dot = fixed.P(0, i*ascent)
-			drawer.DrawString(line)
-		}
+	if rect.Empty() {
+		return nil, errors.New("Empty image")
 	}
-	return dst
+
+	dst := image.NewRGBA(rect)
+	// Fill background.
+	draw.Draw(dst, rect, image.NewUniform(bg), image.ZP, draw.Src)
+	// Draw text.
+	drawer := font.Drawer{Dst: dst, Src: image.NewUniform(fg), Face: face}
+	for i, line := range lines {
+		drawer.Dot = fixed.P(0, i*ascent)
+		drawer.DrawString(line)
+	}
+	return dst, nil
 }
 
 func measure(lines []string, face font.Face, ascent int) image.Rectangle {
@@ -79,8 +86,9 @@ func Moosify(text string) string {
 	nLines := len(lines)
 	maxWidth := 0
 	for _, line := range lines {
-		if len(line) > maxWidth {
-			maxWidth = len(line)
+		length := utf8.RuneCountInString(line)
+		if length > maxWidth {
+			maxWidth = length
 		}
 	}
 
@@ -88,7 +96,8 @@ func Moosify(text string) string {
 	framedLines[0] = " _" + strings.Repeat("_", maxWidth) + "_ "
 	framedLines[1] = "/ " + strings.Repeat(" ", maxWidth) + " \\"
 	for i, line := range lines {
-		padding := strings.Repeat(" ", maxWidth-len(line))
+		length := utf8.RuneCountInString(line)
+		padding := strings.Repeat(" ", maxWidth-length)
 		framedLines[i+2] = "| " + line + padding + " |"
 	}
 	framedLines[nLines+2] = "\\_" + strings.Repeat("_", maxWidth) + "_/"
