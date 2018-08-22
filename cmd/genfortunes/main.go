@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"moose"
 	"os"
 	"strings"
+
+	"github.com/ducakar/moose"
 )
 
 var lib = moose.Library{}

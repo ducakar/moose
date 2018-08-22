@@ -4,11 +4,11 @@ import (
 	"image/color"
 	"image/png"
 	"math/rand"
-	"moose"
-	"moose/fortunes"
 	"net/http"
 	"time"
 
+	"github.com/ducakar/moose"
+	"github.com/ducakar/moose/fortunes"
 	"golang.org/x/image/font/inconsolata"
 	"google.golang.org/appengine"
 )
@@ -32,7 +32,7 @@ func renderText(w http.ResponseWriter, r *http.Request) {
 	text := r.URL.Query().Get("text")
 	if text == "" {
 		rand.Seed(time.Now().UnixNano() * 15485863)
-		lib := moose.Library{fortunes.Fortunes}
+		lib := moose.Library{Fortunes: fortunes.Fortunes}
 		text = lib.Get()
 	}
 	render(w, text)
@@ -44,7 +44,7 @@ func renderMoose(w http.ResponseWriter, r *http.Request) {
 	text := r.URL.Query().Get("text")
 	if text == "" {
 		rand.Seed(time.Now().UnixNano() * 15485863)
-		lib := moose.Library{fortunes.Fortunes}
+		lib := moose.Library{Fortunes: fortunes.Fortunes}
 		text = lib.Get()
 	}
 	text = moose.Moosify(text)

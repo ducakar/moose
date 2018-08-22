@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"image/color"
 	"math/rand"
-	"moose"
 	"time"
+
+	"github.com/ducakar/moose"
 )
 
 func main() {

@@ -6,11 +6,12 @@ import (
 	"image/color"
 	"io/ioutil"
 	"math/rand"
-	"moose"
-	"moose/fortunes"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/ducakar/moose"
+	"github.com/ducakar/moose/fortunes"
 )
 
 func main() {
