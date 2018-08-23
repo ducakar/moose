@@ -2,6 +2,7 @@ package moose
 
 import (
 	"errors"
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -77,9 +78,31 @@ func measure(lines []string, face font.Face, ascent int) image.Rectangle {
 	)
 }
 
-// Moosify encloses the text in a bubble and adds a moose below as if it is
+// Moosify encloses the text in a bubble and adds a character below as if it is
 // saying it.
-func Moosify(text string) string {
+func Moosify(text, format, eyes, tongue string, think bool) string {
+	bubble := printBubble(text, think)
+	cow := printCow(format, eyes, tongue, think)
+	return bubble + cow
+}
+
+var frameFormats = []string{
+	" _%s_ \n",
+	"/ %s \\\n",
+	"| %s%s |\n",
+	"\\_%s_/\n",
+	" _%s_ \n",
+	"( %s )\n",
+	"( %s%s )\n",
+	"(_%s_)\n",
+}
+
+func printBubble(text string, think bool) string {
+	frame := frameFormats
+	if think {
+		frame = frameFormats[4:]
+	}
+
 	text = strings.TrimSuffix(text, "\n")
 	text = strings.Replace(text, "\t", "        ", -1)
 	lines := strings.Split(text, "\n")
@@ -93,23 +116,23 @@ func Moosify(text string) string {
 	}
 
 	framedLines := make([]string, nLines+3)
-	framedLines[0] = " _" + strings.Repeat("_", maxWidth) + "_ "
-	framedLines[1] = "/ " + strings.Repeat(" ", maxWidth) + " \\"
+	framedLines[0] = fmt.Sprintf(frame[0], strings.Repeat("_", maxWidth))
+	framedLines[1] = fmt.Sprintf(frame[1], strings.Repeat(" ", maxWidth))
 	for i, line := range lines {
 		length := utf8.RuneCountInString(line)
 		padding := strings.Repeat(" ", maxWidth-length)
-		framedLines[i+2] = "| " + line + padding + " |"
+		framedLines[i+2] = fmt.Sprintf(frame[2], line, padding)
 	}
-	framedLines[nLines+2] = "\\_" + strings.Repeat("_", maxWidth) + "_/"
-	return strings.Join(framedLines, "\n") + moose
+	framedLines[nLines+2] = fmt.Sprintf(frame[3], strings.Repeat("_", maxWidth))
+	return strings.Join(framedLines, "")
 }
 
-const moose = `
-  \
-   \   \_\_    _/_/
-    \      \__/
-           (oo)\_______
-           (__)\       )\/\
-            U  ||----w |
-               ||     ||
-`
+func printCow(format, eyes, tongue string, think bool) string {
+	eyes += "  "
+	tongue += "  "
+	tc := "\\"
+	if think {
+		tc = "o"
+	}
+	return fmt.Sprintf(format, tc[0], eyes[0], eyes[1], tongue[0], tongue[1])
+}

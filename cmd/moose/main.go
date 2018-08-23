@@ -11,17 +11,23 @@ import (
 	"time"
 
 	"github.com/ducakar/moose"
+	"github.com/ducakar/moose/cows"
 	"github.com/ducakar/moose/fortunes"
 )
 
 func main() {
+	file := flag.String("f", "moose", "Cowfile.")
+	eyes := flag.String("e", "oo", "Eyes string, default `oo'")
+	tongue := flag.String("T", "  ", "Tongue string, default `  '")
+	think := flag.Bool("t", false, "Thinking instead of saying.")
+
 	out := flag.String("o", "", "Output PNG file (print to stdout if is none given).")
 	moosify := flag.Bool("m", false, "Generate an ASCII picture of a moose saying the provided text.")
-	fortune := flag.Bool("f", false, "Select a random fortune as the input.")
+	fortune := flag.String("F", "nice", "Select a random fortune as the input.")
 	flag.Parse()
 
 	var text string
-	if *fortune {
+	if *fortune != "" {
 		rand.Seed(time.Now().UnixNano() * 15485863)
 		lib := moose.Library{fortunes.Fortunes}
 		text = lib.Get()
@@ -38,8 +44,13 @@ func main() {
 		}
 	}
 
+	format, ok := cows.Cows[*file]
+	if !ok {
+		format = cows.Cows["moose"]
+	}
+
 	if *moosify {
-		text = moose.Moosify(text)
+		text = moose.Moosify(text, format, *eyes, *tongue, *think)
 	}
 
 	if *out == "" {
