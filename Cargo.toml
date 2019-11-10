@@ -1,0 +1,11 @@
+[package]
+name = "moose"
+version = "0.1.0"
+authors = ["Davorin Učakar <davorin.ucakar@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+bincode = "1.2.1"
+rand = "0.7.3"
+serde = {version = "1.0.111", features = ["derive"]}
+structopt = "0.3.14"
