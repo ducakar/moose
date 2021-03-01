@@ -1,6 +1,6 @@
 use rand::prelude::*;
-use serde::Deserialize;
 use std::{
+    convert::TryInto,
     fs,
     fs::File,
     io,
@@ -81,9 +81,9 @@ impl Fortunes {
 
         let mut buffer = vec![0_u8; size as usize];
         text_file.read_exact(&mut buffer)?;
-        if (strfile.header.flags & 0x4) != 0 {
+        if strfile.is_encrypted {
             Self::decipher(&mut buffer)
-        };
+        }
 
         let deciphered = String::from_utf8_lossy(&buffer).into_owned();
         Ok(deciphered)
@@ -102,48 +102,39 @@ impl Fortunes {
 
 struct StrFile {
     path: PathBuf,
-    header: Header,
+    is_encrypted: bool,
     pointers: Vec<u32>,
-}
-
-#[derive(Deserialize)]
-#[allow(dead_code)]
-struct Header {
-    version: u32,
-    numstr: u32,
-    longlen: u32,
-    shortlen: u32,
-    flags: u32,
-    delim: u8,
 }
 
 impl StrFile {
     fn load_from(dat_path: PathBuf) -> io::Result<StrFile> {
-        let mut config = bincode::config();
-        let config = config.big_endian();
         let path = dat_path.with_extension("");
-        let contents = fs::read(dat_path)?;
+        let data = fs::read(dat_path)?;
 
-        let header: Header = match config.deserialize(&contents[..]) {
-            Ok(h) => h,
-            Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidData, e)),
-        };
+        let n_strings = Self::read_u32_at(&data, 4)? as usize;
+        let flags = Self::read_u32_at(&data, 16)?;
 
-        let mut pointers = Vec::new();
-        let mut offset = mem::size_of::<Header>();
-        for _ in 0..header.numstr {
-            let begin: u32 = match config.deserialize(&contents[offset..]) {
-                Ok(p) => p,
-                Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidData, e)),
-            };
-            pointers.push(begin);
-            offset += mem::size_of::<u32>();
+        let mut pointers = Vec::with_capacity(n_strings);
+        for i in 0..n_strings {
+            let offset = 24 + i * mem::size_of::<u32>();
+            let pointer = Self::read_u32_at(&data, offset)?;
+            pointers.push(pointer);
         }
 
         Ok(StrFile {
             path,
-            header,
+            is_encrypted: (flags & 0x4) != 0,
             pointers,
         })
+    }
+
+    fn read_u32_at(data: &[u8], index: usize) -> io::Result<u32> {
+        let u32_bytes = data
+            .get(index..index + 4)
+            .ok_or(io::Error::from(io::ErrorKind::InvalidData))?;
+        let u32_array = u32_bytes
+            .try_into()
+            .or(Err(io::Error::from(io::ErrorKind::InvalidData)))?;
+        Ok(u32::from_be_bytes(u32_array))
     }
 }
