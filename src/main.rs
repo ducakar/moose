@@ -25,16 +25,23 @@ fn main() {
             process::exit(1);
         }
     };
-    match fortunes.select() {
-        Ok(Some(f)) => {
-            println!("{}", cow.print(&f, opt.thoughts, &opt.eyes, &opt.tongue));
+    let text = if opt.text.len() != 0 {
+        opt.text.join(" ")
+    } else {
+        match fortunes.select() {
+            Ok(Some(f)) => f,
+            Ok(None) => {
+                eprintln!("No fortunes in the database");
+                process::exit(1);
+            }
+            Err(e) => {
+                eprintln!("Cannot read a fortune: {}", e);
+                process::exit(1);
+            }
         }
-        Ok(None) => {}
-        Err(e) => {
-            eprintln!("Cannot read a fortune: {}", e);
-            process::exit(1);
-        }
-    }
+    };
+
+    println!("{}", cow.print(&text, opt.thoughts, &opt.eyes, &opt.tongue))
 }
 
 #[derive(StructOpt)]
@@ -47,4 +54,5 @@ struct Opt {
     eyes: String,
     #[structopt(short = "T", default_value = "  ")]
     tongue: String,
+    text: Vec<String>,
 }
