@@ -2,6 +2,7 @@ mod cow;
 mod fortune;
 
 use std::process;
+
 use structopt::StructOpt;
 
 fn main() {

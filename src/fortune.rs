@@ -1,4 +1,3 @@
-use rand::prelude::*;
 use std::{
     convert::TryInto,
     fs,
@@ -8,6 +7,8 @@ use std::{
     mem,
     path::{Path, PathBuf},
 };
+
+use rand::prelude::*;
 
 const FORTUNES_DIR: &str = "/usr/share/fortune";
 const OFFENSIVE_FORTUNES_DIR: &str = "/usr/share/fortune/off";
@@ -28,14 +29,17 @@ impl Fortunes {
         if self.fortunes.is_empty() {
             Ok(None)
         } else {
-            let file_index = rand::thread_rng().next_u64() as usize;
-            let ptr_index = rand::thread_rng().next_u64() as usize;
-            match self.fortunes.get(file_index % self.fortunes.len()) {
+            let mut rng = rand::thread_rng();
+            let file_index = rng.gen_range(0..self.fortunes.len());
+            match self.fortunes.get(file_index) {
                 None => Ok(None),
-                Some(sf) => match Self::read_fragment(sf, ptr_index) {
-                    Ok(f) => Ok(Some(f)),
-                    Err(e) => Err(e),
-                },
+                Some(strfile) => {
+                    let ptr_index = rng.gen_range(0..strfile.pointers.len());
+                    match Self::read_fragment(strfile, ptr_index) {
+                        Ok(f) => Ok(Some(f)),
+                        Err(e) => Err(e),
+                    }
+                }
             }
         }
     }
@@ -62,7 +66,6 @@ impl Fortunes {
         }
         let text_file_len = text_file_len as u32;
 
-        let index = index % strfile.pointers.len();
         let ptr = match strfile.pointers.get(index) {
             Some(&ptr) => ptr,
             None => return Err(io::Error::from(io::ErrorKind::UnexpectedEof)),
