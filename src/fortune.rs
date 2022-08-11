@@ -2,13 +2,12 @@ use std::{
     convert::TryInto,
     fs,
     fs::File,
-    io,
-    io::{Read, Seek},
+    io::{self, Read, Seek},
     mem,
     path::{Path, PathBuf},
 };
 
-use rand::prelude::*;
+use rand::Rng;
 
 const FORTUNES_DIR: &str = "/usr/share/fortune";
 const OFFENSIVE_FORTUNES_DIR: &str = "/usr/share/fortune/off";
@@ -92,8 +91,8 @@ impl Fortunes {
         Ok(deciphered)
     }
 
-    fn decipher(encoded_bytes: &mut [u8]) {
-        for b in encoded_bytes {
+    fn decipher(bytes: &mut [u8]) {
+        for b in bytes {
             if b'A' <= *b && *b <= b'Z' {
                 *b = b'A' + (*b - b'A' + 13) % 26
             } else if b'a' <= *b && *b <= b'z' {
@@ -116,6 +115,7 @@ impl StrFile {
 
         let n_strings = Self::read_u32_at(&data, 4)? as usize;
         let flags = Self::read_u32_at(&data, 16)?;
+        let is_encrypted = (flags & 0x4) != 0;
 
         let mut pointers = Vec::with_capacity(n_strings);
         for i in 0..n_strings {
@@ -126,7 +126,7 @@ impl StrFile {
 
         Ok(StrFile {
             path,
-            is_encrypted: (flags & 0x4) != 0,
+            is_encrypted,
             pointers,
         })
     }

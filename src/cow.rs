@@ -16,8 +16,8 @@ impl Cow {
                 let content = &content[begin..];
                 if let Some(end) = content.rfind("\nEOC\n") {
                     let content = &content[..end];
-                    let content = content.replace("\\\\", "\\");
-                    return Ok(Cow { pattern: content });
+                    let pattern = content.replace("\\\\", "\\");
+                    return Ok(Cow { pattern });
                 }
             }
         }
@@ -28,12 +28,12 @@ impl Cow {
         Self::bubble(content, thoughts) + &self.avatar(thoughts, eyes, tongue)
     }
 
-    fn bubble(content: &str, thoughts: bool) -> String {
-        let content = content.replace("\t", "        ");
-        match content.lines().map(|l| l.len()).max() {
+    fn bubble(text: &str, thoughts: bool) -> String {
+        let text = text.replace("\t", "        ");
+        match text.lines().map(|l| l.len()).max() {
             None => String::new(),
             Some(max_width) if thoughts => {
-                let middle_lines: String = content
+                let middle_lines: String = text
                     .lines()
                     .map(|l| format!("( {: <1$} )\n", l, max_width))
                     .collect();
@@ -45,7 +45,7 @@ impl Cow {
                 )
             }
             Some(max_width) => {
-                let middle_lines: String = content
+                let middle_lines: String = text
                     .lines()
                     .map(|l| format!("| {: <1$} |\n", l, max_width))
                     .collect();
