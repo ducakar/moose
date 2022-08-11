@@ -25,15 +25,10 @@ impl Cow {
     }
 
     pub fn print(&self, content: &str, thoughts: bool, eyes: &str, tongue: &str) -> String {
-        Self::bordered(content, thoughts)
-            + &self
-                .pattern
-                .replace("$thoughts", if thoughts { "o" } else { "\\" })
-                .replace("$eyes", &eyes)
-                .replace("$tongue", &tongue)
+        Self::bubble(content, thoughts) + &self.avatar(thoughts, eyes, tongue)
     }
 
-    fn bordered(content: &str, thoughts: bool) -> String {
+    fn bubble(content: &str, thoughts: bool) -> String {
         let content = content.replace("\t", "        ");
         match content.lines().map(|l| l.len()).max() {
             None => String::new(),
@@ -62,5 +57,12 @@ impl Cow {
                 )
             }
         }
+    }
+
+    fn avatar(&self, thoughts: bool, eyes: &str, tongue: &str) -> String {
+        self.pattern
+            .replace("$thoughts", if thoughts { "o" } else { "\\" })
+            .replace("$eyes", &eyes)
+            .replace("$tongue", &tongue)
     }
 }
