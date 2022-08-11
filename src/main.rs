@@ -10,7 +10,7 @@ fn main() {
 
     let cow_file = match opt.cow_file {
         Some(ref cow_file) => cow_file,
-        None => "default",
+        None => "moose",
     };
     let cow = match cow::Cow::new(cow_file) {
         Ok(c) => c,
