@@ -93,10 +93,10 @@ impl Fortunes {
 
     fn decipher(bytes: &mut [u8]) {
         for b in bytes {
-            if b'A' <= *b && *b <= b'Z' {
-                *b = b'A' + (*b - b'A' + 13) % 26
-            } else if b'a' <= *b && *b <= b'z' {
-                *b = b'a' + (*b - b'a' + 13) % 26
+            if b.wrapping_sub(b'A') < 13 || b.wrapping_sub(b'a') < 13 {
+                *b += 13;
+            } else if b.wrapping_sub(b'N') < 13 || b.wrapping_sub(b'n') < 13 {
+                *b -= 13;
             }
         }
     }
