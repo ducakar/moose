@@ -20,7 +20,7 @@ impl Fortunes {
     pub fn load_database() -> io::Result<Fortunes> {
         let mut fortunes = Vec::new();
         Self::read_dir(FORTUNES_DIR, &mut fortunes)?;
-        Self::read_dir(OFFENSIVE_FORTUNES_DIR, &mut fortunes)?;
+        let _ = Self::read_dir(OFFENSIVE_FORTUNES_DIR, &mut fortunes);
         Ok(Fortunes { fortunes })
     }
 
