@@ -29,7 +29,7 @@ impl Cow {
     }
 
     fn bubble(text: &str, thoughts: bool) -> String {
-        let text = text.replace("\t", "        ");
+        let text = text.replace('\t', "        ");
         match text.lines().map(|l| l.len()).max() {
             None => String::new(),
             Some(max_width) if thoughts => {
@@ -62,7 +62,7 @@ impl Cow {
     fn avatar(&self, thoughts: bool, eyes: &str, tongue: &str) -> String {
         self.pattern
             .replace("$thoughts", if thoughts { "o" } else { "\\" })
-            .replace("$eyes", &eyes)
-            .replace("$tongue", &tongue)
+            .replace("$eyes", eyes)
+            .replace("$tongue", tongue)
     }
 }
