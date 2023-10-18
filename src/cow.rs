@@ -10,18 +10,20 @@ impl Cow {
     pub fn new(name: &str) -> io::Result<Cow> {
         let path = Path::new(COW_DIR).join(name).with_extension("cow");
         let content = fs::read_to_string(path)?;
-        if let Some(begin) = content.find("$the_cow") {
-            let content = &content[begin..];
-            if let Some(begin) = content.find('\n') {
-                let content = &content[begin..];
-                if let Some(end) = content.rfind("\nEOC\n") {
-                    let content = &content[..end];
-                    let pattern = content.replace("\\\\", "\\");
-                    return Ok(Cow { pattern });
-                }
-            }
-        }
-        Err(io::Error::from(io::ErrorKind::InvalidData))
+        let begin = content
+            .find("$the_cow")
+            .ok_or(io::Error::from(io::ErrorKind::InvalidData))?;
+        let content = &content[begin..];
+        let begin = content
+            .find('\n')
+            .ok_or(io::Error::from(io::ErrorKind::InvalidData))?;
+        let content = &content[begin..];
+        let end = content
+            .rfind("\nEOC\n")
+            .ok_or(io::Error::from(io::ErrorKind::InvalidData))?;
+        let content = &content[..end];
+        let pattern = content.replace("\\\\", "\\");
+        Ok(Cow { pattern })
     }
 
     pub fn print(&self, content: &str, thoughts: bool, eyes: &str, tongue: &str) -> String {
@@ -33,10 +35,9 @@ impl Cow {
         match text.lines().map(|l| l.len()).max() {
             None => String::new(),
             Some(max_width) if thoughts => {
-                let middle_lines: String = text
-                    .lines()
-                    .map(|l| format!("( {: <1$} )\n", l, max_width))
-                    .collect();
+                let middle_lines: String = text.lines().fold(String::new(), |a, l| {
+                    a + &format!("( {: <1$} )\n", l, max_width)
+                });
                 format!(
                     " _{empty:_<width$}_\n( {empty: <width$} )\n{middle}(_{empty:_<width$}_)",
                     empty = "",
@@ -45,10 +46,9 @@ impl Cow {
                 )
             }
             Some(max_width) => {
-                let middle_lines: String = text
-                    .lines()
-                    .map(|l| format!("| {: <1$} |\n", l, max_width))
-                    .collect();
+                let middle_lines: String = text.lines().fold(String::new(), |a, l| {
+                    a + &format!("| {: <1$} |\n", l, max_width)
+                });
                 format!(
                     " _{empty:_<width$}_\n/ {empty: <width$} \\\n{middle}\\_{empty:_<width$}_/",
                     empty = "",

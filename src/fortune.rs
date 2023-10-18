@@ -65,10 +65,10 @@ impl Fortunes {
         }
         let text_file_len = text_file_len as u32;
 
-        let ptr = match strfile.pointers.get(index) {
-            Some(&ptr) => ptr,
-            None => return Err(io::Error::from(io::ErrorKind::UnexpectedEof)),
-        };
+        let &ptr = strfile
+            .pointers
+            .get(index)
+            .ok_or(io::Error::from(io::ErrorKind::UnexpectedEof))?;
         let next_ptr = strfile.pointers.get(index + 1);
         let size = match next_ptr {
             Some(&next_ptr) if ptr < next_ptr && next_ptr - ptr >= 3 => next_ptr - ptr - 3,
